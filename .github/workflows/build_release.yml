@@ -1,0 +1,140 @@
+---
+name: Compile GSM Relay Station Firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+    # paths:
+    #   - .github/workflows/build_release.yml
+  pull_request:
+    branches:
+      - main
+    # paths:
+    #   - .github/workflows/build_release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  lint_firmware:
+    runs-on: ubuntu-latest
+    # defaults:
+    #   run:
+    #     working-directory: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install PlatformIO core
+        run: pip install -U platformio
+
+      - name: Check code quality
+        run: pio check
+  
+  build_firmware:
+    runs-on: ubuntu-latest
+    # defaults:
+    #   run:
+    #     working-directory: .
+    needs: 
+      - lint_firmware
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install PlatformIO core
+        run: pip install -U platformio
+
+      - name: Build Firmware
+        run: |
+          set -x
+          pio run
+          # pio ci --project-conf platformio.ini .
+
+      - name: List all files
+        if: always()
+        continue-on-error: true
+        run: |
+          set -x
+          pwd
+          ls -allh
+          tree
+
+      # TODO: Validate
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          path: .pio/build/esp32dev/firmware.bin
+          name: GSM-Relay-Station.bin
+          compression-level: 0
+          if-no-files-found: error
+
+  create_release:
+    runs-on: ubuntu-latest
+    environment: github_release
+    needs:
+      - build_firmware
+    # if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - id: version
+        name: Get Version
+        run: |
+          set -x
+
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            version=${{ github.ref_name }}
+          else
+            version="${GITHUB_SHA::7}"
+          fi
+
+          echo "version=${version}" > $GITHUB_OUTPUT
+
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: List all files
+        if: always()
+        continue-on-error: true
+        run: |
+          set -x
+          pwd
+          ls -all
+          tree
+
+      - name: Create Release ${{ steps.version.outputs.version }}
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            *.bin
