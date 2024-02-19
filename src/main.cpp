@@ -9,6 +9,7 @@
 
 #define SerialMon Serial
 #define SerialAT Serial1
+// #define SerialAT Serial2
 
 TinyGsm modem(SerialAT);
 TinyGsmClient client(modem);
@@ -16,8 +17,10 @@ TinyGsmClient client(modem);
 void print_modem_info();
 void check_and_send_sms();
 void blink_led();
+void inject_REPL();
 
 int sms_counter = 0;
+uint32_t rate = 0; // Module baud rate, Set to 0 for Auto-Detect
 
 void setup()
 {
@@ -25,20 +28,24 @@ void setup()
   pinMode(LED_PIN, OUTPUT);
   int res;
 
+  delay(1000);
   SerialMon.println("[+] GSM Relay Station has started...");
 
   DBG("[+] Setting up the GSM Relay Station...")
 
-  int min_baud_rate = 9600;
-  int max_baud_rate = 115200;
-  TinyGsmAutoBaud(SerialAT, min_baud_rate, max_baud_rate);
-  blink_led();
-  SerialMon.println("[+] GSM Relay Station: Set Auto Baud Rate");
+  // int min_baud_rate = 9600;
+  // int max_baud_rate = 115200;
+  // TinyGsmAutoBaud(SerialAT, min_baud_rate, max_baud_rate);
+  // blink_led();
+  // SerialMon.println("[+] GSM Relay Station: Set Auto Baud Rate");
+
+  rate = TinyGsmAutoBaud(SerialAT);
+  SerialMon.println("[+] GSM Relay Station: Got Rate - " + String(rate));
 
   delay(5000);
 
-  modem.init();
-  // modem.restart();
+  // modem.init();
+  modem.restart();
   blink_led();
   SerialMon.println("[+] GSM Relay Station: Init Modem");
 
@@ -88,8 +95,8 @@ void print_modem_info()
   SerialMon.println("[+] GSM Relay Station: Signal quality - " + String(csq));
   SerialMon.println("[+] GSM Relay Station: Modem Name - " + modem.getModemName());
   SerialMon.println("[+] GSM Relay Station: Modem Info - " + modem.getModemInfo());
-  SerialMon.println("[+] GSM Relay Station: Sim Status - " + modem.getSimStatus());
-  SerialMon.println("[+] GSM Relay Station: GPRS Status - " + modem.isGprsConnected());
+  SerialMon.println("[+] GSM Relay Station: Sim Status - " + String(modem.getSimStatus()));
+  SerialMon.println("[+] GSM Relay Station: GPRS Status - " + String(modem.isGprsConnected()));
   SerialMon.println(modem.isGprsConnected());
   SerialMon.println("[+] GSM Relay Station: IMEI - " + modem.getIMEI());
   SerialMon.println("[+] GSM Relay Station: IMSI - " + modem.getIMSI());
@@ -138,4 +145,22 @@ void blink_led()
   delay(1000);
 
   digitalWrite(LED_PIN, LOW);
+}
+
+void inject_REPL()
+{
+  SerialAT.begin(rate);
+
+  // Access AT commands from Serial Monitor
+  SerialMon.println(F(" You can now send AT commands"));
+
+  while(true) {
+    if (SerialAT.available()) {
+      SerialMon.write(SerialAT.read());
+    }
+    if (SerialMon.available()) {
+      SerialAT.write(SerialMon.read());
+    }
+    delay(0);
+  }
 }
