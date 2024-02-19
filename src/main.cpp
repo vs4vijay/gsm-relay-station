@@ -13,7 +13,11 @@
 TinyGsm modem(SerialAT);
 TinyGsmClient client(modem);
 
+void print_modem_info();
+void check_and_send_sms();
 void blink_led();
+
+int sms_counter = 0;
 
 void setup()
 {
@@ -40,37 +44,13 @@ void setup()
 
   delay(5000);
 
-  SerialMon.println("[+] GSM Relay Station: Modem Name - " + modem.getModemName());
-
-  SerialMon.print("[+] GSM Relay Station: Modem Info");
-  SerialMon.println(modem.getModemInfo());
-
-  SerialMon.println("[+] GSM Relay Station: Sim Status");
-  // int modem.getSimCCID();
+  print_modem_info();
 
   // bool res = modem.isGprsConnected();
   // SerialMon.println("GPRS status:", res ? "connected" : "not connected");
 
-  const char *imei = modem.getIMEI().c_str();
-  SerialMon.print("IMEI: ");
-  SerialMon.println(imei);
-
-  String imsi = modem.getIMSI();
-  SerialMon.print("IMSI: ");
-  SerialMon.println(imsi);
-
-  // String cop = modem.getOperator();
-  // SerialMon.println("Operator:", cop);
-
-  // IPAddress local = modem.localIP();
-  // SerialMon.println("Local IP:", String(local));
-
-  // int csq = modem.getSignalQuality();
-  // SerialMon.println("Signal quality:", String(csq));
-
   res = modem.testAT();
-  SerialMon.print("SIM800 Test AT result -> ");
-  SerialMon.println(res);
+  SerialMon.println("[+] GSM Relay Station: SIM800 Test AT Result - " + String(res));
 }
 
 void loop()
@@ -78,11 +58,11 @@ void loop()
   if (!modem.isNetworkConnected())
   {
     SerialMon.println("[+] GSM Relay Station: Network disconnected");
-    if (!modem.waitForNetwork(1 * 60 * 1000, true))
+    if (!modem.waitForNetwork(1 * 10 * 1000, true))
     {
       SerialMon.println("[+] GSM Relay Station: Network re-connect failed");
       delay(10000);
-      return;
+      // return;
     }
 
     if (modem.isNetworkConnected())
@@ -91,15 +71,71 @@ void loop()
     }
   }
 
+  delay(1000);
+
+  print_modem_info();
+
+  check_and_send_sms();
+
+  delay(1000);
+
   // modem.maintain();
+}
+
+void print_modem_info()
+{
+  int csq = modem.getSignalQuality();
+  SerialMon.println("[+] GSM Relay Station: Signal quality - " + String(csq));
+  SerialMon.println("[+] GSM Relay Station: Modem Name - " + modem.getModemName());
+  SerialMon.println("[+] GSM Relay Station: Modem Info - " + modem.getModemInfo());
+  SerialMon.println("[+] GSM Relay Station: Sim Status - " + modem.getSimStatus());
+  SerialMon.println("[+] GSM Relay Station: GPRS Status - " + modem.isGprsConnected());
+  SerialMon.println(modem.isGprsConnected());
+  SerialMon.println("[+] GSM Relay Station: IMEI - " + modem.getIMEI());
+  SerialMon.println("[+] GSM Relay Station: IMSI - " + modem.getIMSI());
+  SerialMon.println("[+] GSM Relay Station: Operator - " + modem.getOperator());
+  SerialMon.println("[+] GSM Relay Station: Local IP - " + modem.getLocalIP());
+  SerialMon.println("[+] GSM Relay Station: GSM Location - " + modem.getGsmLocationRaw());
+
+  // int modem.getSimCCID();
+
+  SerialMon.println("---");
+}
+
+void check_and_send_sms()
+{
+  if (sms_counter < 1)
+  {
+    String target_number = "+919166276700";
+    String message = "Hello from GSM Relay Station";
+
+    SerialMon.println("[+] GSM Relay Station: Sending SMS to " + target_number);
+
+    bool status = modem.sendSMS(target_number, message);
+
+    if (status)
+    {
+      SerialMon.println("[+] GSM Relay Station: SMS sent successfully");
+      sms_counter++;
+    }
+    else
+    {
+      SerialMon.println("[+] GSM Relay Station: SMS sending failed");
+    }
+  }
 }
 
 void blink_led()
 {
   digitalWrite(LED_PIN, LOW);
-  modem.sendAT("+CNETLIGHT=0");
+  // modem.sendAT("+CNETLIGHT=0");
+
   delay(1000);
+
   digitalWrite(LED_PIN, HIGH);
-  modem.sendAT("+CNETLIGHT=1");
+  // modem.sendAT("+CNETLIGHT=1");
+
   delay(1000);
+
+  digitalWrite(LED_PIN, LOW);
 }
