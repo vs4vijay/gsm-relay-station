@@ -11,6 +11,8 @@
 
 TinyGsm modem(SerialAT);
 
+void blink_led();
+
 void setup()
 {
   SerialMon.begin(115200);
