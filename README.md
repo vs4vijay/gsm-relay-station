@@ -6,12 +6,41 @@ SIM 800L / 800H
 - LILYGO T-Call SIM800L
 - Datasheet - https://github.com/Xinyuan-LilyGO/LilyGo-T-Call-SIM800/blob/master/doc/SIM800L_IP5306.MD
 
+
+## Setup Development Environment
+
+```bash
+
+pip install -U platformio
+
+```
+
+## Compile Firmware
+
+
+```shell
+
+pio run
+
+```
+
+- firmware will be at `.pio/build/*` directory
+
+## Flash Firmware
+
+
+### Option-I: Using esptool
+- Install esptool.py - `pip install -U esptool`
+```
+python -m esptool write_flash -z 0 firmware.bin
+```
+
 ---
 
 ## References
 
-https://github.com/vshymanskyy/TinyGSM
-https://github.com/Xinyuan-LilyGO/LilyGo-T-Call-SIM800
+- https://github.com/vshymanskyy/TinyGSM
+- https://github.com/Xinyuan-LilyGO/LilyGo-T-Call-SIM800
 
 
 ---
