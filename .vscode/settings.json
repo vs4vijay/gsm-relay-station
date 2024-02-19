@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "typeinfo": "cpp",
-        "*.tpp": "cpp",
-        "system_error": "cpp"
-    }
-}

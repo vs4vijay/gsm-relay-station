@@ -57,6 +57,8 @@ void loop() {
     rate = TinyGsmAutoBaud(SerialAT);
   }
 
+  SerialAT.println("AT");
+
   if (!rate) {
     SerialMon.println(F("***********************************************************"));
     SerialMon.println(F(" Module does not respond!"));

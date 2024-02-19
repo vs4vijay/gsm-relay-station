@@ -39,8 +39,8 @@ void setup()
   // blink_led();
   // SerialMon.println("[+] GSM Relay Station: Set Auto Baud Rate");
 
-  rate = TinyGsmAutoBaud(SerialAT);
-  SerialMon.println("[+] GSM Relay Station: Got Rate - " + String(rate));
+  // rate = TinyGsmAutoBaud(SerialAT);
+  // SerialMon.println("[+] GSM Relay Station: Got Rate - " + String(rate));
 
   delay(5000);
 
@@ -97,7 +97,6 @@ void print_modem_info()
   SerialMon.println("[+] GSM Relay Station: Modem Info - " + modem.getModemInfo());
   SerialMon.println("[+] GSM Relay Station: Sim Status - " + String(modem.getSimStatus()));
   SerialMon.println("[+] GSM Relay Station: GPRS Status - " + String(modem.isGprsConnected()));
-  SerialMon.println(modem.isGprsConnected());
   SerialMon.println("[+] GSM Relay Station: IMEI - " + modem.getIMEI());
   SerialMon.println("[+] GSM Relay Station: IMSI - " + modem.getIMSI());
   SerialMon.println("[+] GSM Relay Station: Operator - " + modem.getOperator());
