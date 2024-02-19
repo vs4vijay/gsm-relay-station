@@ -71,4 +71,27 @@ while (true) {
 }
 
 
+
+res = modem.callNumber(CALL_TARGET);
+DBG("Call Status: ", res ? "OK" : "failed");
+
+res = modem.sendSMS(SMS_TARGET, String("Hello from ") + imei);
+DBG("Send SMS Status: ", res ? "OK" : "failed");
+
+modem.sendUSSD("*111#");
+modem.dtmfSend('A', 1000);
+
+String location = modem.getGsmLocation();
+DBG("GSM Based Location String:", location);
+
+String gps_raw = modem.getGPSraw();
+DBG("GPS/GNSS Based Location String:", gps_raw);
+
+
+DBG("Chip temperature:", modem.getTemperature());
+
+modem.maintain();
+
+modem.poweroff();
+
 ```
