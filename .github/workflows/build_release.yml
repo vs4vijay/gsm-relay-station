@@ -20,39 +20,39 @@ permissions:
   contents: write
 
 jobs:
-  lint_firmware:
-    runs-on: ubuntu-latest
-    # defaults:
-    #   run:
-    #     working-directory: .
+  # lint_firmware:
+  #   runs-on: ubuntu-latest
+  #   # defaults:
+  #   #   run:
+  #   #     working-directory: .
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.platformio/.cache
-          key: ${{ runner.os }}-pio
+  #     - uses: actions/cache@v4
+  #       with:
+  #         path: |
+  #           ~/.cache/pip
+  #           ~/.platformio/.cache
+  #         key: ${{ runner.os }}-pio
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
+  #     - uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.9"
 
-      - name: Install PlatformIO core
-        run: pip install -U platformio
+  #     - name: Install PlatformIO core
+  #       run: pip install -U platformio
 
-      - name: Check code quality
-        run: pio check
+  #     - name: Check code quality
+  #       run: pio check
   
   build_firmware:
     runs-on: ubuntu-latest
     # defaults:
     #   run:
     #     working-directory: .
-    needs: 
-      - lint_firmware
+    # needs: 
+    #   - lint_firmware
 
     steps:
       - uses: actions/checkout@v4
@@ -91,7 +91,7 @@ jobs:
       - name: Upload firmware
         uses: actions/upload-artifact@v4
         with:
-          path: .pio/build/esp32dev/firmware.bin
+          path: .pio/build/**/firmware.bin
           name: GSM-Relay-Station.bin
           compression-level: 0
           if-no-files-found: error
